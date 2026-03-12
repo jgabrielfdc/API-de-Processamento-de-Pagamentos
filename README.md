@@ -63,25 +63,6 @@ Implementações específicas de cada provedor de pagamento.
 
 ---
 
-# Estrutura do Banco de Dados
-
-Tabela principal:
-
-## payments
-
-| Campo | Tipo |
-|------|------|
-id | integer
-gateway | string
-transaction_id | string
-amount | integer
-status | string
-payload | json
-created_at | timestamp
-updated_at | timestamp
-
----
-
 # Configuração dos Gateways
 
 Arquivo:
@@ -103,21 +84,33 @@ return [
     ]
 
 ];
+```
 
-Executando o Projeto
+### Executando o Projeto
+
 1 - Clonar o repositório
+
+```bash
 git clone https://github.com/seu-repositorio/api-pagamentos.git
+```
+
 2 - Instalar dependências
+```bash
 composer install
+```
 3 - Configurar ambiente
 
 Copiar o arquivo:
 
+```
 .env.example
+```
 
 para
-
+```
 .env
+```
+
 4 - Configurar banco de dados
 
 Editar no .env
@@ -125,10 +118,15 @@ Editar no .env
 DB_DATABASE=db_pg
 DB_USERNAME=root
 DB_PASSWORD=
+
 5 - Executar migrations
+```bash
 php artisan migrate
+```
 6 - Iniciar servidor
+```bash
 php artisan serve
+```
 
 API disponível em:
 
@@ -138,8 +136,9 @@ Simulação dos Gateways
 Os gateways são simulados através de um container Docker.
 
 Execute:
-
+```bash
 docker run -p 3001:3001 -p 3002:3002 -e REMOVE_AUTH='true' matheusprotzen/gateways-mock
+```
 
 Portas utilizadas:
 
@@ -154,7 +153,7 @@ POST
 /api/payments
 
 Body:
-
+```json
 {
  "amount": 1000,
  "name": "Joao Silva",
@@ -162,14 +161,16 @@ Body:
  "card_number": "4111111111111111",
  "cvv": "123"
 }
-
+```
 Resposta:
-
+```json
 {
  "id": 1,
  "gateway": "stripe",
  "status": "paid"
 }
+```
+
 Listar pagamentos
 
 GET
@@ -187,14 +188,17 @@ POST
 /api/payments/{id}/refund
 
 Resposta:
-
+```json
 {
  "status": "refunded"
 }
+```
+
 Estratégia de Fallback
 
 Fluxo de processamento:
 
+```
 Gateway 1
    ↓
 Falha
@@ -202,6 +206,7 @@ Falha
 Gateway 2
    ↓
 Sucesso
+```
 
 Caso todos os gateways falhem, a API retorna erro.
 
@@ -212,17 +217,3 @@ A API pode ser testada utilizando ferramentas como:
 Insomnia
 
 Postman
-
-Possíveis Melhorias Futuras
-
-Autenticação nos gateways
-
-Circuit breaker
-
-Logs estruturados
-
-Testes automatizados
-
-Autor
-
-João Gabriel
