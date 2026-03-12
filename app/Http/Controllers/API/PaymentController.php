@@ -10,30 +10,58 @@ use App\Models\Payment;
 
 class PaymentController extends Controller
 {
+
+    private $paymentService;
+    public function __construct(PaymentService $paymentService)
+    {
+        $this->paymentService = $paymentService;
+    }
+
     public function store(Request $request)
     {
         $data = $request->validate([
-            'gateway' => 'required|string',
-            'amount' => 'required|numeric',
-            'currency' => 'required|string'
+            'amount' => 'required|integer',
+            'name' => 'required|string',
+            'email' => 'required|email',
+            'card_number' => 'required|string|size:16',
+            'cvv' => 'required|string|size:3'
         ]);
 
-        $service = new PaymentService();
-
-        $response = $service->processPayment(
-            $data['gateway'],
-            $data
-        );
+        $response = $this->paymentService->processPayment($data);
 
         $payment = Payment::create([
-            'gateway' => $data['gateway'],
+            'gateway' => $response['gateway'],
             'transaction_id' => $response['transaction_id'],
             'amount' => $data['amount'],
-            'currency' => $data['currency'],
             'status' => $response['status'],
             'payload' => $response
         ]);
 
         return response()->json($payment);
+    }
+
+    public function index()
+    {
+        // Retorna todos os pagamento presentes no bd
+        return response()->json(Payment::all());
+    }
+
+    public function show(Payment $payment)
+    {
+        // Retorna somente o pagamento especificado
+        return response()->json($payment);
+    }
+
+    public function refund(Payment $payment)
+    {
+        $service = new PaymentService();
+
+        $response = $service->refundPayment($payment);
+
+        $payment->update([
+            'status' => 'refunded'
+        ]);
+
+        return response()->json($response);
     }
 }

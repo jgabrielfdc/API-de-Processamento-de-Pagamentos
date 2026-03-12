@@ -10,7 +10,6 @@ class Payment extends Model
         'gateway',
         'transaction_id',
         'amount',
-        'currency',
         'status',
         'payload'
     ];

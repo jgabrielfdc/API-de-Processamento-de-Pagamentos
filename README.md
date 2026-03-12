@@ -1,61 +1,228 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# API de Processamento de Pagamentos (Multi-Gateway)
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+API RESTful para processamento de pagamentos utilizando múltiplos gateways com fallback automático. Desenvolvida utilizando o framework Laravel.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+# Objetivo
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Implementar uma API capaz de:
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- Processar pagamentos utilizando múltiplos gateways
+- Realizar fallback automático em caso de falha
+- Persistir transações em banco de dados
+- Permitir consulta de pagamentos
+- Permitir reembolso de transações
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+# Tecnologias Utilizadas
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- Laravel 12
+---
 
-## Laravel Sponsors
+# Arquitetura do Projeto
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+A aplicação segue uma arquitetura baseada em serviços e gateways, permitindo desacoplamento entre a lógica de negócio e os provedores de pagamento.
 
-### Premium Partners
+app
+ └ Services
+     └ Payments
+         ├ PaymentService.php
+         ├ Contracts
+         │   └ PaymentGatewayInterface.php
+         └ Gateways
+             ├ StripeGateway.php
+             └ PayPalGateway.php
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
 
-## Contributing
+### PaymentService
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Responsável por:
 
-## Code of Conduct
+- Orquestrar os gateways
+- Implementar fallback automático
+- Retornar o resultado do pagamento
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### PaymentGatewayInterface
 
-## Security Vulnerabilities
+Define o contrato obrigatório para qualquer gateway.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Métodos:
 
-## License
+    charge(array $data)
+    refund(string $transactionId)
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
-=======
-# API-de-Processamento-de-Pagamentos
+
+### Gateways
+
+Implementações específicas de cada provedor de pagamento.
+
+- StripeGateway
+- PayPalGateway
+
+---
+
+# Estrutura do Banco de Dados
+
+Tabela principal:
+
+## payments
+
+| Campo | Tipo |
+|------|------|
+id | integer
+gateway | string
+transaction_id | string
+amount | integer
+status | string
+payload | json
+created_at | timestamp
+updated_at | timestamp
+
+---
+
+# Configuração dos Gateways
+
+Arquivo:
+
+config/gateways.php
+
+
+Exemplo:
+
+```php
+return [
+
+    'stripe' => [
+        'url' => env('STRIPE_URL', 'http://localhost:3001'),
+    ],
+
+    'paypal' => [
+        'url' => env('PAYPAL_URL', 'http://localhost:3002'),
+    ]
+
+];
+
+Executando o Projeto
+1 - Clonar o repositório
+git clone https://github.com/seu-repositorio/api-pagamentos.git
+2 - Instalar dependências
+composer install
+3 - Configurar ambiente
+
+Copiar o arquivo:
+
+.env.example
+
+para
+
+.env
+4 - Configurar banco de dados
+
+Editar no .env
+
+DB_DATABASE=db_pg
+DB_USERNAME=root
+DB_PASSWORD=
+5 - Executar migrations
+php artisan migrate
+6 - Iniciar servidor
+php artisan serve
+
+API disponível em:
+
+http://127.0.0.1:8000
+Simulação dos Gateways
+
+Os gateways são simulados através de um container Docker.
+
+Execute:
+
+docker run -p 3001:3001 -p 3002:3002 -e REMOVE_AUTH='true' matheusprotzen/gateways-mock
+
+Portas utilizadas:
+
+Gateway	Porta
+Gateway 1	3001
+Gateway 2	3002
+Endpoints da API
+Criar pagamento
+
+POST
+
+/api/payments
+
+Body:
+
+{
+ "amount": 1000,
+ "name": "Joao Silva",
+ "email": "joao@email.com",
+ "card_number": "4111111111111111",
+ "cvv": "123"
+}
+
+Resposta:
+
+{
+ "id": 1,
+ "gateway": "stripe",
+ "status": "paid"
+}
+Listar pagamentos
+
+GET
+
+/api/payments
+Buscar pagamento
+
+GET
+
+/api/payments/{id}
+Reembolso
+
+POST
+
+/api/payments/{id}/refund
+
+Resposta:
+
+{
+ "status": "refunded"
+}
+Estratégia de Fallback
+
+Fluxo de processamento:
+
+Gateway 1
+   ↓
+Falha
+   ↓
+Gateway 2
+   ↓
+Sucesso
+
+Caso todos os gateways falhem, a API retorna erro.
+
+Testes da API
+
+A API pode ser testada utilizando ferramentas como:
+
+Insomnia
+
+Postman
+
+Possíveis Melhorias Futuras
+
+Autenticação nos gateways
+
+Circuit breaker
+
+Logs estruturados
+
+Testes automatizados
+
+Autor
+
+João Gabriel

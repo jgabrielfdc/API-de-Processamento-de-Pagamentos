@@ -4,8 +4,17 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\PaymentController;
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+Route::prefix('/payments')->group(function(){
 
-Route::post('/payments',[PaymentController::class,'store']);
+    // Faz o pagamento
+    Route::post('/',[PaymentController::class,'store']);
+
+    // Lista pagamentos
+    Route::get('/',[PaymentController::class,'index']);
+
+    // Mostra os detalhes do pagamento
+    Route::get('/{payment}',[PaymentController::class,'show']);
+
+    // Reembolso
+    Route::post('/{payment}/refund',[PaymentController::class,'refund']);
+});
