@@ -158,8 +158,8 @@ Body:
  "amount": 1000,
  "name": "Joao Silva",
  "email": "joao@email.com",
- "card_number": "4111111111111111",
- "cvv": "123"
+ "card_number": "411111******1111",
+ "cvv": "***"
 }
 ```
 Resposta:

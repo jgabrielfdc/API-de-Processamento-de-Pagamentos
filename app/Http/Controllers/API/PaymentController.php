@@ -4,7 +4,6 @@ namespace App\Http\Controllers\API;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-
 use App\Services\Payments\PaymentService;
 use App\Models\Payment;
 
@@ -12,6 +11,7 @@ class PaymentController extends Controller
 {
 
     private $paymentService;
+
     public function __construct(PaymentService $paymentService)
     {
         $this->paymentService = $paymentService;
@@ -20,11 +20,11 @@ class PaymentController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'amount' => 'required|integer',
-            'name' => 'required|string',
+            'amount' => 'required|integer|min:1',
+            'name' => 'required|string|max:255',
             'email' => 'required|email',
-            'card_number' => 'required|string|size:16',
-            'cvv' => 'required|string|size:3'
+            'card_number' => 'required|digits:16',
+            'cvv' => 'required|digits_between:3,4'
         ]);
 
         $response = $this->paymentService->processPayment($data);
@@ -34,7 +34,11 @@ class PaymentController extends Controller
             'transaction_id' => $response['transaction_id'],
             'amount' => $data['amount'],
             'status' => $response['status'],
-            'payload' => $response
+            'payload' => [
+                'gateway' => $response['gateway'],
+                'transaction_id' => $response['transaction_id'],
+                'status' => $response['status']
+            ]
         ]);
 
         return response()->json($payment);
@@ -42,21 +46,17 @@ class PaymentController extends Controller
 
     public function index()
     {
-        // Retorna todos os pagamento presentes no bd
         return response()->json(Payment::all());
     }
 
     public function show(Payment $payment)
     {
-        // Retorna somente o pagamento especificado
         return response()->json($payment);
     }
 
     public function refund(Payment $payment)
     {
-        $service = new PaymentService();
-
-        $response = $service->refundPayment($payment);
+        $response = $this->paymentService->refundPayment($payment);
 
         $payment->update([
             'status' => 'refunded'
